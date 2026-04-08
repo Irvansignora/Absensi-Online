@@ -1,3 +1,4 @@
+// pages/api/attendance/checkin.js
 import { requireAuth } from '../../../lib/auth'
 import { supabaseAdmin } from '../../../lib/supabase'
 
@@ -6,9 +7,9 @@ async function handler(req, res) {
 
   const db = supabaseAdmin()
   const today = new Date().toISOString().split('T')[0]
-  const now = new Date().toISOString()
+  const now   = new Date().toISOString()
 
-  // Check sudah check-in hari ini?
+  // Cek sudah check-in hari ini?
   const { data: existing } = await db
     .from('attendances')
     .select('id, check_in')
@@ -29,34 +30,37 @@ async function handler(req, res) {
     if (new Date(now) > shiftStart) status = 'late'
   }
 
-  const { note, latitude, longitude, face_verified } = req.body
+  const { note, latitude, longitude, face_verified, face_photo_url } = req.body
+
+  const payload = {
+    check_in:          now,
+    status,
+    check_in_note:     note,
+    check_in_lat:      latitude,
+    check_in_lng:      longitude,
+    face_verified:     face_verified || false,
+    face_photo_url:    face_photo_url || null,  // ← URL Cloudinary
+  }
 
   let attendance
   if (existing) {
-    // Update record yang ada (kalau ada tapi belum check-in)
     const { data, error } = await db
       .from('attendances')
-      .update({ check_in: now, status, check_in_note: note, check_in_lat: latitude, check_in_lng: longitude, face_verified: face_verified || false })
+      .update(payload)
       .eq('id', existing.id)
       .select()
       .single()
     if (error) return res.status(500).json({ error: error.message })
     attendance = data
   } else {
-    // Buat record baru
     const { data, error } = await db
       .from('attendances')
       .insert({
         employee_id: req.user.id,
-        branch_id: req.user.branch_id,
-        shift_id: req.user.shift_id,
-        date: today,
-        check_in: now,
-        status,
-        check_in_note: note,
-        check_in_lat: latitude,
-        check_in_lng: longitude,
-        face_verified: face_verified || false,
+        branch_id:   req.user.branch_id,
+        shift_id:    req.user.shift_id,
+        date:        today,
+        ...payload,
       })
       .select()
       .single()
