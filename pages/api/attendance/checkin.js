@@ -29,14 +29,14 @@ async function handler(req, res) {
     if (new Date(now) > shiftStart) status = 'late'
   }
 
-  const { note, latitude, longitude } = req.body
+  const { note, latitude, longitude, face_verified } = req.body
 
   let attendance
   if (existing) {
     // Update record yang ada (kalau ada tapi belum check-in)
     const { data, error } = await db
       .from('attendances')
-      .update({ check_in: now, status, check_in_note: note, check_in_lat: latitude, check_in_lng: longitude })
+      .update({ check_in: now, status, check_in_note: note, check_in_lat: latitude, check_in_lng: longitude, face_verified: face_verified || false })
       .eq('id', existing.id)
       .select()
       .single()
@@ -56,6 +56,7 @@ async function handler(req, res) {
         check_in_note: note,
         check_in_lat: latitude,
         check_in_lng: longitude,
+        face_verified: face_verified || false,
       })
       .select()
       .single()
