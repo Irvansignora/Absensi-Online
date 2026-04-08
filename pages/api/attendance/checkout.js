@@ -1,3 +1,4 @@
+// pages/api/attendance/checkout.js
 import { requireAuth } from '../../../lib/auth'
 import { supabaseAdmin } from '../../../lib/supabase'
 
@@ -6,7 +7,7 @@ async function handler(req, res) {
 
   const db = supabaseAdmin()
   const today = new Date().toISOString().split('T')[0]
-  const now = new Date().toISOString()
+  const now   = new Date().toISOString()
 
   const { data: attendance } = await db
     .from('attendances')
@@ -22,7 +23,7 @@ async function handler(req, res) {
     return res.status(400).json({ error: 'Anda sudah check-out hari ini' })
   }
 
-  const { note, latitude, longitude } = req.body
+  const { note, latitude, longitude, face_verified, face_photo_url } = req.body
 
   // Hitung jam kerja - kalau < 4 jam = half_day
   const workMins = Math.floor((new Date(now) - new Date(attendance.check_in)) / 60000)
@@ -32,10 +33,12 @@ async function handler(req, res) {
   const { data, error } = await db
     .from('attendances')
     .update({
-      check_out: now,
-      check_out_note: note,
-      check_out_lat: latitude,
-      check_out_lng: longitude,
+      check_out:           now,
+      check_out_note:      note,
+      check_out_lat:       latitude,
+      check_out_lng:       longitude,
+      face_verified:       face_verified || attendance.face_verified || false,
+      face_photo_url_out:  face_photo_url || null,  // ← URL Cloudinary checkout
       status,
     })
     .eq('id', attendance.id)
