@@ -36,7 +36,6 @@ async function handler(req, res) {
       check_out_note: note,
       check_out_lat: latitude,
       check_out_lng: longitude,
-      work_minutes: workMins,
       status,
     })
     .eq('id', attendance.id)
