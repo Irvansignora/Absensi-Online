@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const [locLoading, setLocLoading]           = useState(false)
   const [faceMode, setFaceMode]               = useState(null)
   const [faceVerified, setFaceVerified]       = useState(false)
+  const [facePhotoUrl, setFacePhotoUrl]         = useState(null)
   const pendingModeRef                        = useRef(null) // ✅ FIX 1: useRef sekarang di-import
 
   useEffect(() => { fetchUser(); fetchToday(); fetchHistory() }, [])
@@ -84,30 +85,31 @@ export default function DashboardPage() {
   function startCheckIn()  { pendingModeRef.current = 'checkin';  setFaceMode('checkin');  setMsg({ type: '', text: '' }) }
   function startCheckOut() { pendingModeRef.current = 'checkout'; setFaceMode('checkout'); setMsg({ type: '', text: '' }) }
 
-  async function handleFaceVerified({ snapshot }) {
+  async function handleFaceVerified({ snapshot, photoUrl }) {
     const mode = pendingModeRef.current
     setFaceMode(null)
     setFaceVerified(true)
+    if (photoUrl) setFacePhotoUrl(photoUrl)
     const loc = await getLocation()
-    if (mode === 'checkin') await doCheckIn(loc, true)
-    else await doCheckOut(loc, true)
+    if (mode === 'checkin') await doCheckIn(loc, true, photoUrl)
+    else await doCheckOut(loc, true, photoUrl)
   }
 
   async function handleFaceSkip() {
     const mode = pendingModeRef.current
     setFaceMode(null)
     const loc = await getLocation()
-    if (mode === 'checkin') await doCheckIn(loc, false)
-    else await doCheckOut(loc, false)
+    if (mode === 'checkin') await doCheckIn(loc, false, null)
+    else await doCheckOut(loc, false, null)
   }
 
-  async function doCheckIn(loc, faceOk) {
+  async function doCheckIn(loc, faceOk, photoUrl) {
     setLoading(true)
     try {
       const res = await fetch('/api/attendance/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ note, latitude: loc?.lat, longitude: loc?.lng, face_verified: faceOk }),
+        body: JSON.stringify({ note, latitude: loc?.lat, longitude: loc?.lng, face_verified: faceOk, face_photo_url: photoUrl || null }),
       })
       const d = await res.json()
       if (!res.ok) { setMsg({ type: 'error', text: d.error }) } 
@@ -116,13 +118,13 @@ export default function DashboardPage() {
     setLoading(false)
   }
 
-  async function doCheckOut(loc, faceOk) {
+  async function doCheckOut(loc, faceOk, photoUrl) {
     setLoading(true)
     try {
       const res = await fetch('/api/attendance/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ note, latitude: loc?.lat, longitude: loc?.lng, face_verified: faceOk }),
+        body: JSON.stringify({ note, latitude: loc?.lat, longitude: loc?.lng, face_verified: faceOk, face_photo_url: photoUrl || null }),
       })
       const d = await res.json()
       if (!res.ok) { setMsg({ type: 'error', text: d.error }) }
@@ -199,9 +201,15 @@ export default function DashboardPage() {
             </div>
 
             {faceVerified && (
-              <div className="mb-3 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
-                <span>🤖</span>
-                <p className="text-emerald-700 text-sm font-medium">Wajah terverifikasi oleh AI</p>
+              <div className="mb-3 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+                {facePhotoUrl
+                  ? <img src={facePhotoUrl} alt="Foto wajah" className="w-10 h-10 rounded-lg object-cover border border-emerald-300" />
+                  : <span>🤖</span>
+                }
+                <div>
+                  <p className="text-emerald-700 text-sm font-medium">Wajah terverifikasi oleh AI</p>
+                  {facePhotoUrl && <p className="text-emerald-500 text-xs">📸 Foto tersimpan di cloud</p>}
+                </div>
               </div>
             )}
 
