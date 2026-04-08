@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1e3a8a" />
+  <title>Offline — AbsensiPro</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0B1629 0%, #1e3a8a 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    .icon {
+      font-size: 72px;
+      margin-bottom: 24px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.95); }
+    }
+    .logo {
+      width: 56px; height: 56px;
+      background: #2563EB;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 800;
+      margin: 0 auto 32px;
+    }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    p { color: rgba(255,255,255,0.65); font-size: 16px; line-height: 1.6; max-width: 320px; }
+    .card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 32px;
+      margin-top: 32px;
+      max-width: 380px;
+      width: 100%;
+    }
+    .tip { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 8px; }
+    button {
+      margin-top: 28px;
+      background: #2563EB;
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.15s;
+    }
+    button:hover { background: #1d4ed8; }
+    .status {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #EF4444;
+      animation: pulse 1.5s infinite;
+    }
+    .dot.online { background: #10B981; }
+  </style>
+</head>
+<body>
+  <div class="logo">A</div>
+  <div class="icon">📶</div>
+  <h1>Tidak Ada Koneksi</h1>
+  <p>AbsensiPro memerlukan koneksi internet untuk mencatat absensi. Pastikan HP kamu terhubung ke WiFi atau data seluler.</p>
+
+  <div class="card">
+    <p><strong style="color:white">Yang perlu dilakukan:</strong></p>
+    <p style="margin-top:8px">1. Periksa koneksi WiFi atau paket data</p>
+    <p class="tip">2. Muat ulang halaman setelah koneksi tersambung</p>
+    <p class="tip">3. Jika masalah berlanjut, hubungi admin IT</p>
+
+    <button onclick="tryReconnect()">🔄 Coba Lagi</button>
+
+    <div class="status">
+      <div class="dot" id="dot"></div>
+      <span id="status-text">Tidak ada koneksi</span>
+    </div>
+  </div>
+
+  <script>
+    function updateStatus() {
+      const dot = document.getElementById('dot')
+      const txt = document.getElementById('status-text')
+      if (navigator.onLine) {
+        dot.classList.add('online')
+        txt.textContent = 'Koneksi tersambung — klik Coba Lagi'
+      } else {
+        dot.classList.remove('online')
+        txt.textContent = 'Tidak ada koneksi'
+      }
+    }
+
+    function tryReconnect() {
+      if (navigator.onLine) {
+        window.location.href = '/dashboard'
+      } else {
+        window.location.reload()
+      }
+    }
+
+    window.addEventListener('online', () => {
+      updateStatus()
+      setTimeout(() => window.location.href = '/dashboard', 1000)
+    })
+    window.addEventListener('offline', updateStatus)
+    updateStatus()
+  </script>
+</body>
+</html>
