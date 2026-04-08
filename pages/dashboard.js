@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import dynamic from 'next/dynamic'
@@ -47,7 +47,7 @@ export default function DashboardPage() {
   const [locLoading, setLocLoading]           = useState(false)
   const [faceMode, setFaceMode]               = useState(null)
   const [faceVerified, setFaceVerified]       = useState(false)
-  const pendingModeRef                        = useRef(null)
+  const pendingModeRef                        = useRef(null) // ✅ FIX 1: useRef sekarang di-import
 
   useEffect(() => { fetchUser(); fetchToday(); fetchHistory() }, [])
 
@@ -126,7 +126,13 @@ export default function DashboardPage() {
       })
       const d = await res.json()
       if (!res.ok) { setMsg({ type: 'error', text: d.error }) }
-      else { setMsg({ type: 'success', text: '✅ Check-out berhasil!' + (faceOk ? ' Wajah terverifikasi 🤖' : '') }); setNote(''); fetchToday(); fetchHistory() }
+      else {
+        setMsg({ type: 'success', text: '✅ Check-out berhasil!' + (faceOk ? ' Wajah terverifikasi 🤖' : '') })
+        setNote('')
+        setFaceVerified(false) // ✅ FIX 2: reset badge setelah check-out selesai
+        fetchToday()
+        fetchHistory()
+      }
     } catch { setMsg({ type: 'error', text: 'Gagal check-out, coba lagi' }) }
     setLoading(false)
   }
