@@ -10,27 +10,37 @@ export default async function handler(req, res) {
   const db = supabaseAdmin()
 
   try {
-    // 1. Branches
-    const { data: branches, error: brErr } = await db.from('branches').upsert([
+    // 1. Branches — insert only if name not exists
+    let branches = []
+    for (const b of [
       { name: 'Kantor Pusat', city: 'Jakarta', address: 'Jl. Sudirman No. 1, Jakarta Pusat', phone: '021-12345678' },
       { name: 'Cabang Bandung', city: 'Bandung', address: 'Jl. Braga No. 10, Bandung', phone: '022-87654321' },
       { name: 'Cabang Surabaya', city: 'Surabaya', address: 'Jl. Pemuda No. 5, Surabaya', phone: '031-11223344' },
-    ], { onConflict: 'name' }).select()
-
-    if (brErr) throw new Error('Branch error: ' + brErr.message)
+    ]) {
+      const { data: existing } = await db.from('branches').select('*').eq('name', b.name).single()
+      if (existing) { branches.push(existing); continue }
+      const { data, error } = await db.from('branches').insert(b).select().single()
+      if (error) throw new Error('Branch error: ' + error.message)
+      branches.push(data)
+    }
 
     const pusat = branches.find(b => b.name === 'Kantor Pusat')
     const bandung = branches.find(b => b.name === 'Cabang Bandung')
     const surabaya = branches.find(b => b.name === 'Cabang Surabaya')
 
-    // 2. Shifts
-    const { data: shifts, error: shErr } = await db.from('shifts').upsert([
+    // 2. Shifts — insert only if name not exists
+    let shifts = []
+    for (const s of [
       { name: 'Shift Pagi', start_time: '08:00', end_time: '17:00', late_tolerance_minutes: 15, work_days: ['Senin','Selasa','Rabu','Kamis','Jumat'] },
       { name: 'Shift Siang', start_time: '13:00', end_time: '22:00', late_tolerance_minutes: 15, work_days: ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'] },
       { name: 'Shift Malam', start_time: '22:00', end_time: '07:00', late_tolerance_minutes: 15, work_days: ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'] },
-    ], { onConflict: 'name' }).select()
-
-    if (shErr) throw new Error('Shift error: ' + shErr.message)
+    ]) {
+      const { data: existing } = await db.from('shifts').select('*').eq('name', s.name).single()
+      if (existing) { shifts.push(existing); continue }
+      const { data, error } = await db.from('shifts').insert(s).select().single()
+      if (error) throw new Error('Shift error: ' + error.message)
+      shifts.push(data)
+    }
 
     const pagi = shifts.find(s => s.name === 'Shift Pagi')
     const siang = shifts.find(s => s.name === 'Shift Siang')
@@ -40,7 +50,7 @@ export default async function handler(req, res) {
     const empHash = await bcrypt.hash('karyawan123', 10)
     const hrHash = await bcrypt.hash('hr123456', 10)
 
-    // 4. Employees
+    // 4. Employees — upsert on email (email has unique constraint)
     const { data: employees, error: empErr } = await db.from('employees').upsert([
       {
         name: 'Admin Sistem', email: 'admin@demo.com', password_hash: adminHash,
