@@ -57,6 +57,7 @@ async function handler(req, res) {
     'Jam Check-Out': fmtTime(r.check_out),
     'Total Jam Kerja': calcHours(r.check_in, r.check_out),
     'Status': statusLabel(r.status),
+    'Verifikasi Wajah': r.face_verified ? 'Ya' : 'Tidak',
     'Catatan Check-In': r.check_in_note || '',
     'Catatan Check-Out': r.check_out_note || '',
   }))
@@ -93,7 +94,7 @@ async function handler(req, res) {
   ws['!cols'] = [
     { wch: 12 }, { wch: 14 }, { wch: 25 }, { wch: 18 }, { wch: 18 },
     { wch: 20 }, { wch: 15 }, { wch: 14 }, { wch: 14 }, { wch: 14 },
-    { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 25 }, { wch: 25 },
+    { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 16 }, { wch: 25 }, { wch: 25 },
   ]
 
   XLSX.utils.book_append_sheet(wb, ws, 'Absensi')
