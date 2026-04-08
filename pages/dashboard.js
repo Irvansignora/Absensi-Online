@@ -47,7 +47,7 @@ export default function DashboardPage() {
   const [locLoading, setLocLoading]           = useState(false)
   const [faceMode, setFaceMode]               = useState(null)
   const [faceVerified, setFaceVerified]       = useState(false)
-  const pendingModeRef                        = { current: null }
+  const pendingModeRef                        = useRef(null)
 
   useEffect(() => { fetchUser(); fetchToday(); fetchHistory() }, [])
 
@@ -85,7 +85,7 @@ export default function DashboardPage() {
   function startCheckOut() { pendingModeRef.current = 'checkout'; setFaceMode('checkout'); setMsg({ type: '', text: '' }) }
 
   async function handleFaceVerified({ snapshot }) {
-    const mode = faceMode
+    const mode = pendingModeRef.current
     setFaceMode(null)
     setFaceVerified(true)
     const loc = await getLocation()
@@ -94,7 +94,7 @@ export default function DashboardPage() {
   }
 
   async function handleFaceSkip() {
-    const mode = faceMode
+    const mode = pendingModeRef.current
     setFaceMode(null)
     const loc = await getLocation()
     if (mode === 'checkin') await doCheckIn(loc, false)
