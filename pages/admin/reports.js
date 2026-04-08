@@ -165,6 +165,7 @@ export default function ReportsPage() {
                     <th>Check Out</th>
                     <th>Jam Kerja</th>
                     <th>Status</th>
+                    <th>Wajah</th>
                     <th>Catatan</th>
                   </tr>
                 </thead>
@@ -189,6 +190,11 @@ export default function ReportsPage() {
                           </span>
                         </td>
                         <td><Badge status={r.status} /></td>
+                        <td className="text-center">
+                          {r.face_verified
+                            ? <span title="Wajah terverifikasi" className="text-emerald-600 text-base">🤖</span>
+                            : <span title="Tidak diverifikasi" className="text-slate-300 text-base">—</span>}
+                        </td>
                         <td className="text-xs text-slate-500 max-w-32 truncate">{r.check_in_note || r.check_out_note || '-'}</td>
                       </tr>
                     )
