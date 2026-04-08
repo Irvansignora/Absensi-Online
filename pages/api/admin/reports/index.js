@@ -79,7 +79,7 @@ async function handler(req, res) {
     .from('attendances')
     .select(`
       id, date, check_in, check_out, status, check_in_note, check_out_note,
-      latitude_in, longitude_in,
+      check_in_lat, check_in_lng,
       employees!inner(id, name, employee_code, branch_id, shift_id, branches(name), shifts(name))
     `)
     .gte('date', startDate)
@@ -96,6 +96,8 @@ async function handler(req, res) {
   const records = (data || []).map(r => ({
     id: r.id, date: r.date, check_in: r.check_in, check_out: r.check_out,
     status: r.status, check_in_note: r.check_in_note, check_out_note: r.check_out_note,
+    check_in_lat: r.check_in_lat, check_in_lng: r.check_in_lng,
+    face_verified: r.face_verified || false,
     employee_name: r.employees?.name,
     employee_code: r.employees?.employee_code,
     branch_name: r.employees?.branches?.name,
