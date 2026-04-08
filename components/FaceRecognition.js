@@ -13,7 +13,7 @@ async function loadFaceApi() {
   return window.faceapi
 }
 
-const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights'
+const MODEL_URL = '/weights'
 
 const STATES = {
   IDLE: 'idle',
@@ -161,9 +161,24 @@ export default function FaceRecognition({ onVerified, onSkip, mode = 'checkin' }
           // Capture snapshot
           const snap = captureSnapshot(video)
           setState(STATES.VERIFIED)
-          setMessage('✅ Wajah berhasil diverifikasi!')
+          setMessage('✅ Wajah berhasil diverifikasi! Mengupload foto...')
           stopEverything()
-          setTimeout(() => onVerified({ snapshot: snap, score }), 600)
+
+          // Upload snapshot ke Cloudinary via API
+          try {
+            const uploadRes = await fetch('/api/attendance/upload-face', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ snapshot: snap }),
+            })
+            const uploadData = await uploadRes.json()
+            const photoUrl = uploadRes.ok ? uploadData.url : null
+            if (photoUrl) setMessage('✅ Wajah terverifikasi & foto tersimpan!')
+            setTimeout(() => onVerified({ snapshot: snap, score, photoUrl }), 600)
+          } catch {
+            // Kalau upload gagal, tetap lanjut tanpa foto
+            setTimeout(() => onVerified({ snapshot: snap, score, photoUrl: null }), 600)
+          }
         }
       } else {
         stableFrames = Math.max(0, stableFrames - 1)
