@@ -198,7 +198,7 @@ export default function DashboardPage() {
   const tzLabel  = user?.branch_timezone ?? null
 
   if (isLoadingUser) return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 animate-page">
       <div className="spinner spinner-blue" />
     </div>
   )
@@ -214,7 +214,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-slate-50 font-body">
 
         {/* Header */}
-        <div className="px-4 pt-10 pb-16 text-center text-white"
+        <div className="px-4 pt-10 pb-16 text-center text-white animate-page"
           style={{ background: 'linear-gradient(135deg, #0B1629 0%, #1e3a8a 100%)' }}>
           <div className="flex justify-between items-center max-w-md mx-auto mb-6">
             <div className="flex items-center gap-2">
