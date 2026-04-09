@@ -5,7 +5,7 @@ import { usePWA } from '../lib/usePWA'
 import PWAInstallBanner, { OfflineBanner } from '../components/PWABanner'
 
 export default function App({ Component, pageProps }) {
-  const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || 'AbsensiPro'
+  const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || 'WorkForce'
   const { isInstallable, isOnline, promptInstall } = usePWA()
   const [showBanner, setShowBanner] = useState(false)
   const [dismissed, setDismissed] = useState(false)
