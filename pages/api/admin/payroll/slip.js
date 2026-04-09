@@ -1,14 +1,9 @@
 // pages/api/admin/payroll/slip.js
-// GET /api/admin/payroll/slip?id=xxx  → download PDF slip gaji
+// GET /api/admin/payroll/slip?id=xxx → HTML slip gaji dengan data dari company_settings
 
 import { requireAuth } from '../../../../lib/auth'
 import { supabaseAdmin } from '../../../../lib/supabase'
-import { format } from 'date-fns'
-import { id as localeId } from 'date-fns/locale'
 
-// Generate PDF menggunakan html → string, dikirim sebagai response
-// Menggunakan pendekatan HTML-in-PDF via built-in browser print (client side)
-// Server side: kembalikan data JSON, PDF di-generate di frontend
 async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end()
 
@@ -18,26 +13,50 @@ async function handler(req, res) {
 
   const { data: p, error } = await db
     .from('payrolls')
-    .select(`
-      *,
-      employees!payrolls_employee_id_fkey(
-        name, employee_code, department, position, phone, email,
-        branch_id, branches(name, address, phone)
-      )
-    `)
+    .select(`*, employees!payrolls_employee_id_fkey(name, employee_code, department, position, phone, email, branch_id, branches(name, address, phone))`)
     .eq('id', id)
     .single()
 
   if (error || !p) return res.status(404).json({ error: 'Payroll tidak ditemukan' })
 
-  const emp = p.employees
+  // Ambil company settings
+  const { data: cs } = await db.from('company_settings').select('*').limit(1).single()
+  const settings = cs || {}
+
+  const emp    = p.employees
   const branch = emp?.branches
 
-  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
-  const bulan = MONTHS[p.month - 1]
-  const fmt = (n) => 'Rp ' + (n || 0).toLocaleString('id-ID')
+  // Nama & alamat perusahaan: prioritas company_settings > branch
+  const companyName    = settings.company_name    || branch?.name    || 'Perusahaan'
+  const companyAddress = settings.company_address || branch?.address || ''
+  const companyPhone   = settings.company_phone   || branch?.phone   || ''
+  const companyEmail   = settings.company_email   || ''
+  const companyLogoUrl = settings.company_logo_url || null
+  const footerNote     = settings.slip_footer_note || 'Slip gaji ini digenerate otomatis oleh sistem.'
+  const showBpjs       = settings.slip_show_bpjs   !== false
+  const showPph21      = settings.slip_show_pph21  !== false
+  const npwp           = settings.npwp             || ''
 
-  // Generate HTML slip
+  const MONTHS = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
+  const bulan  = MONTHS[p.month - 1]
+  const fmt    = (n) => 'Rp ' + (n || 0).toLocaleString('id-ID')
+
+  const logoHtml = companyLogoUrl
+    ? `<img src="${companyLogoUrl}" alt="Logo" style="width:52px;height:52px;object-fit:contain;border-radius:6px;" />`
+    : `<div style="width:52px;height:52px;background:#eff6ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:28px;">🏢</div>`
+
+  const bpjsRows = showBpjs ? `
+    ${p.deduction_bpjs_kes > 0 ? `<tr><td class="label">BPJS Kesehatan (${settings.bpjs_kesehatan_employee||1}%)</td><td class="value" style="color:#dc2626;">-${fmt(p.deduction_bpjs_kes)}</td></tr>` : ''}
+    ${p.deduction_bpjs_jht > 0 ? `<tr><td class="label">BPJS TK – JHT (${settings.bpjs_jht_employee||2}%)</td><td class="value" style="color:#dc2626;">-${fmt(p.deduction_bpjs_jht)}</td></tr>` : ''}
+    ${p.deduction_bpjs_jp  > 0 ? `<tr><td class="label">BPJS TK – JP (${settings.bpjs_jp_employee||1}%)</td><td class="value" style="color:#dc2626;">-${fmt(p.deduction_bpjs_jp)}</td></tr>` : ''}
+  ` : (p.deduction_bpjs_kes + p.deduction_bpjs_jht + p.deduction_bpjs_jp > 0)
+    ? `<tr><td class="label">BPJS (total)</td><td class="value" style="color:#dc2626;">-${fmt((p.deduction_bpjs_kes||0)+(p.deduction_bpjs_jht||0)+(p.deduction_bpjs_jp||0))}</td></tr>`
+    : ''
+
+  const pph21Row = showPph21 && p.pph21 > 0
+    ? `<tr><td class="label">PPh 21</td><td class="value" style="color:#dc2626;">-${fmt(p.pph21)}</td></tr>`
+    : ''
+
   const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
@@ -46,10 +65,11 @@ async function handler(req, res) {
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: Arial, sans-serif; font-size: 11px; color: #1e293b; background: #fff; }
-  .page { width: 210mm; min-height: 148mm; margin: 0 auto; padding: 16mm 14mm; }
+  .page { width: 210mm; min-height: 148mm; margin: 0 auto; padding: 14mm 14mm; }
 
   .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 12px; }
-  .company h1 { font-size: 16px; font-weight: 800; color: #1e3a8a; letter-spacing: -0.5px; }
+  .company-left { display: flex; align-items: flex-start; gap: 10px; }
+  .company h1 { font-size: 15px; font-weight: 800; color: #1e3a8a; letter-spacing: -0.5px; }
   .company p  { font-size: 9px; color: #64748b; margin-top: 2px; }
   .slip-title { text-align: right; }
   .slip-title h2 { font-size: 13px; font-weight: 700; color: #1e3a8a; }
@@ -60,7 +80,6 @@ async function handler(req, res) {
   .info-item p    { font-size: 11px; font-weight: 600; color: #1e293b; margin-top: 1px; }
 
   .section-title { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; margin-top: 10px; }
-
   table { width: 100%; border-collapse: collapse; }
   table td { padding: 4px 6px; }
   table .label { color: #475569; width: 55%; }
@@ -85,11 +104,10 @@ async function handler(req, res) {
   .sign-box { text-align: center; }
   .sign-box .line { border-top: 1px solid #94a3b8; width: 100px; margin: 28px auto 4px; }
   .sign-box p { font-size: 9px; color: #64748b; }
-  .note { font-size: 9px; color: #94a3b8; font-style: italic; }
+  .note { font-size: 9px; color: #94a3b8; font-style: italic; max-width: 65%; }
 
-  .badge-green { background: #dcfce7; color: #166534; padding: 2px 7px; border-radius: 99px; font-size: 9px; font-weight: 600; }
+  .badge-green  { background: #dcfce7; color: #166534; padding: 2px 7px; border-radius: 99px; font-size: 9px; font-weight: 600; }
   .badge-yellow { background: #fef9c3; color: #854d0e; padding: 2px 7px; border-radius: 99px; font-size: 9px; font-weight: 600; }
-  .badge-red { background: #fee2e2; color: #991b1b; padding: 2px 7px; border-radius: 99px; font-size: 9px; font-weight: 600; }
 
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -100,23 +118,25 @@ async function handler(req, res) {
 <body>
 <div class="page">
 
-  <!-- Header -->
   <div class="header">
-    <div class="company">
-      <h1>🏢 ${branch?.name || 'Perusahaan'}</h1>
-      <p>${branch?.address || ''}</p>
-      <p>${branch?.phone || ''}</p>
+    <div class="company-left">
+      ${logoHtml}
+      <div class="company">
+        <h1>${companyName}</h1>
+        ${companyAddress ? `<p>${companyAddress}</p>` : ''}
+        ${companyPhone   ? `<p>📞 ${companyPhone}${companyEmail ? ' · ' + companyEmail : ''}</p>` : ''}
+        ${npwp           ? `<p>NPWP: ${npwp}</p>` : ''}
+      </div>
     </div>
     <div class="slip-title">
       <h2>SLIP GAJI KARYAWAN</h2>
       <div class="period">${bulan} ${p.year}</div>
       <div style="margin-top:4px; font-size:9px; color:#94a3b8;">
-        Status: <span class="${p.status === 'paid' ? 'badge-green' : p.status === 'approved' ? 'badge-yellow' : 'badge-yellow'}">${p.status === 'paid' ? '✓ Dibayar' : p.status === 'approved' ? '✓ Disetujui' : '⏳ Draft'}</span>
+        Status: <span class="${p.status === 'paid' ? 'badge-green' : 'badge-yellow'}">${p.status === 'paid' ? '✓ Dibayar' : p.status === 'approved' ? '✓ Disetujui' : '⏳ Draft'}</span>
       </div>
     </div>
   </div>
 
-  <!-- Info Karyawan -->
   <div class="info-grid">
     <div class="info-item"><label>Nama Karyawan</label><p>${emp?.name || '-'}</p></div>
     <div class="info-item"><label>ID Karyawan</label><p>${emp?.employee_code || '-'}</p></div>
@@ -126,7 +146,6 @@ async function handler(req, res) {
     <div class="info-item"><label>Hari Kerja</label><p>${p.work_days} hari</p></div>
   </div>
 
-  <!-- Kehadiran chips -->
   <div class="section-title">📊 Rekap Kehadiran</div>
   <div class="attendance-row">
     <div class="att-chip green"><div class="num">${p.days_present}</div><div class="lbl">Hadir</div></div>
@@ -137,7 +156,6 @@ async function handler(req, res) {
     <div class="att-chip yellow"><div class="num">${p.late_minutes || 0}m</div><div class="lbl">Mnt Telat</div></div>
   </div>
 
-  <!-- Pendapatan & Potongan -->
   <div class="two-col">
     <div>
       <div class="section-title">💰 Pendapatan</div>
@@ -158,10 +176,8 @@ async function handler(req, res) {
       <table>
         ${p.deduction_absent > 0 ? `<tr><td class="label">Potongan Absen (${p.days_absent}h)</td><td class="value" style="color:#dc2626;">-${fmt(p.deduction_absent)}</td></tr>` : ''}
         ${p.deduction_late > 0 ? `<tr><td class="label">Potongan Terlambat</td><td class="value" style="color:#dc2626;">-${fmt(p.deduction_late)}</td></tr>` : ''}
-        ${p.deduction_bpjs_kes > 0 ? `<tr><td class="label">BPJS Kesehatan (1%)</td><td class="value" style="color:#dc2626;">-${fmt(p.deduction_bpjs_kes)}</td></tr>` : ''}
-        ${p.deduction_bpjs_jht > 0 ? `<tr><td class="label">BPJS TK – JHT (2%)</td><td class="value" style="color:#dc2626;">-${fmt(p.deduction_bpjs_jht)}</td></tr>` : ''}
-        ${p.deduction_bpjs_jp > 0 ? `<tr><td class="label">BPJS TK – JP (1%)</td><td class="value" style="color:#dc2626;">-${fmt(p.deduction_bpjs_jp)}</td></tr>` : ''}
-        ${p.pph21 > 0 ? `<tr><td class="label">PPh 21</td><td class="value" style="color:#dc2626;">-${fmt(p.pph21)}</td></tr>` : ''}
+        ${bpjsRows}
+        ${pph21Row}
         <tr style="border-top:1px solid #e2e8f0;">
           <td class="label" style="font-weight:700;">Total Potongan</td>
           <td class="value" style="font-weight:700; color:#dc2626;">-${fmt(p.total_deductions)}</td>
@@ -170,17 +186,15 @@ async function handler(req, res) {
     </div>
   </div>
 
-  <!-- Total Gaji Bersih -->
   <div class="total-box">
     <span class="label">💵 GAJI BERSIH DITERIMA</span>
     <span class="amount">${fmt(p.net_salary)}</span>
   </div>
 
-  <!-- Footer -->
   <div class="footer">
     <div class="note">
-      Slip gaji ini digenerate otomatis oleh sistem AbsensiPro.<br>
-      Dicetak pada: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+      ${footerNote}<br>
+      Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
     </div>
     <div class="sign-box">
       <div class="line"></div>
@@ -190,7 +204,6 @@ async function handler(req, res) {
 
 </div>
 
-<!-- Print button (hilang saat print) -->
 <div class="no-print" style="text-align:center; padding:20px;">
   <button onclick="window.print()" style="background:#1e3a8a;color:#fff;border:none;padding:10px 28px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600;">
     🖨️ Print / Simpan PDF
