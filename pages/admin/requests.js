@@ -228,6 +228,7 @@ export default function AdminRequestsPage() {
                 ))}
               </div>
             )}
+          </>
         )}
 
       {/* Review Modal */}
