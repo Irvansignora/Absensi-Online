@@ -98,7 +98,7 @@ export default function AdminLayout({ children }) {
             </Link>
           ))}
           
-          {(user?.role === 'admin' || user?.role === 'hr') && (
+          {(user?.role === 'admin' || user?.role === 'hr' || user?.role === 'finance') && (
             <>
               <div className="my-4 border-t border-white/5 mx-4" />
               <Link href="/dashboard" className="sidebar-link text-blue-400 hover:bg-blue-500/10">
