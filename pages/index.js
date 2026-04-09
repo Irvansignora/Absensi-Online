@@ -41,7 +41,7 @@ export default function LoginPage() {
   return (
     <>
       <Head>
-        <title>Login - AbsensiPro</title>
+        <title>Login - WorkForce</title>
       </Head>
       <div className="min-h-screen flex font-body">
         {/* Left: decorative panel */}
@@ -57,8 +57,8 @@ export default function LoginPage() {
 
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xl font-bold font-display">A</div>
-              <span className="text-white text-xl font-bold font-display">AbsensiPro</span>
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xl font-bold font-display">W</div>
+              <span className="text-white text-xl font-bold font-display">WorkForce</span>
             </div>
           </div>
 
@@ -87,7 +87,7 @@ export default function LoginPage() {
           </div>
 
           <div className="relative z-10">
-            <p className="text-slate-600 text-sm">© 2024 AbsensiPro. All rights reserved.</p>
+            <p className="text-slate-600 text-sm">© 2026 WorkForce. All rights reserved.</p>
           </div>
         </div>
 
@@ -96,8 +96,8 @@ export default function LoginPage() {
           <div className="w-full max-w-md">
             {/* Mobile logo */}
             <div className="flex lg:hidden items-center gap-2 mb-8">
-              <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold font-display">A</div>
-              <span className="text-xl font-bold font-display text-slate-900">AbsensiPro</span>
+              <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold font-display">W</div>
+              <span className="text-xl font-bold font-display text-slate-900">WorkForce</span>
             </div>
 
             <div className="mb-8">
