@@ -46,10 +46,7 @@ export default function App({ Component, pageProps }) {
       {/* Offline indicator */}
       {!isOnline && <OfflineBanner />}
 
-      {/* Smooth Page Transition Wrapper */}
-      <main key={router.asPath} className="animate-page">
-        <Component {...pageProps} />
-      </main>
+      <Component {...pageProps} />
 
       {/* PWA Install Banner */}
       {showBanner && !dismissed && (
