@@ -52,7 +52,6 @@ export default function RequestsPage() {
     const r = await fetch('/api/auth/me')
     const d = await r.json()
     if (d.error) { router.push('/'); return }
-    if (['admin', 'hr'].includes(d.user.role)) { router.push('/admin'); return }
     setUser(d.user)
     // Load employees & shifts for swap options
     // Gunakan /api/employees (bukan admin) agar karyawan biasa bisa akses
