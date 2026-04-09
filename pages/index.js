@@ -15,8 +15,11 @@ export default function LoginPage() {
       .then(r => r.json())
       .then(d => {
         if (d.user) {
-          if (['admin', 'hr'].includes(d.user.role)) router.push('/admin')
-          else router.push('/dashboard')
+          if (['admin', 'hr', 'finance'].includes(d.user.role)) {
+            router.push('/admin')
+          } else {
+            router.push('/dashboard')
+          }
         } else {
           setCheckingSession(false)
         }
@@ -49,7 +52,7 @@ export default function LoginPage() {
         return
       }
 
-      if (['admin', 'hr'].includes(data.user.role)) {
+      if (['admin', 'hr', 'finance'].includes(data.user.role)) {
         router.push('/admin')
       } else {
         router.push('/dashboard')
