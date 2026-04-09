@@ -11,7 +11,7 @@ const NAV = [
   { href: '/admin/requests',  label: 'Pengajuan & Lembur', icon: '📋' },
   { href: '/admin/reports',   label: 'Laporan Absensi',    icon: '📈' },
   { href: '/admin/payroll',   label: 'Penggajian',         icon: '💰' },
-  { href: '/admin/settings',  label: 'Setting Company',    icon: '⚙️' },
+  { href: '/admin/settings',  label: 'Setting',		       icon: '⚙️' },
 ]
 
 export default function AdminLayout({ children, title = 'Dashboard' }) {
@@ -50,10 +50,10 @@ export default function AdminLayout({ children, title = 'Dashboard' }) {
         <div className="px-6 py-6 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white text-lg font-bold font-display">
-              A
+              W
             </div>
             <div>
-              <p className="text-white font-semibold text-sm font-display leading-tight">AbsensiPro</p>
+              <p className="text-white font-semibold text-sm font-display leading-tight">WorkForce</p>
               <p className="text-slate-500 text-xs">Admin Panel</p>
             </div>
           </div>
@@ -100,8 +100,8 @@ export default function AdminLayout({ children, title = 'Dashboard' }) {
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-slate-900 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">A</div>
-          <span className="text-white font-semibold text-sm font-display">AbsensiPro</span>
+          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">W</div>
+          <span className="text-white font-semibold text-sm font-display">WorkForce</span>
         </div>
         <div className="flex items-center gap-2">
           {pendingCount > 0 && (
