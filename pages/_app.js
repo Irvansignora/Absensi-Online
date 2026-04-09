@@ -1,10 +1,12 @@
 import '../styles/globals.css'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
 import { usePWA } from '../lib/usePWA'
 import PWAInstallBanner, { OfflineBanner } from '../components/PWABanner'
 
 export default function App({ Component, pageProps }) {
+  const router = useRouter()
   const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || 'WorkForce'
   const { isInstallable, isOnline, promptInstall } = usePWA()
   const [showBanner, setShowBanner] = useState(false)
@@ -44,7 +46,10 @@ export default function App({ Component, pageProps }) {
       {/* Offline indicator */}
       {!isOnline && <OfflineBanner />}
 
-      <Component {...pageProps} />
+      {/* Smooth Page Transition Wrapper */}
+      <main key={router.asPath} className="animate-page">
+        <Component {...pageProps} />
+      </main>
 
       {/* PWA Install Banner */}
       {showBanner && !dismissed && (
