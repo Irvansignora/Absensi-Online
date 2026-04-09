@@ -22,7 +22,7 @@ export default function PWAInstallBanner({ onInstall, onDismiss }) {
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm">Install AbsensiPro</p>
+            <p className="text-white font-bold text-sm">Install WorkForce</p>
             <p className="text-blue-200 text-xs mt-0.5 leading-relaxed">
               Pasang di HP untuk absen lebih cepat tanpa buka browser!
             </p>
