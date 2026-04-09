@@ -1,8 +1,8 @@
 const withPWA = require('next-pwa')({
   dest: 'public',
-  register: false,        // kita register manual di usePWA.js
+  register: false,
   skipWaiting: true,
-  sw: 'sw.js',            // pakai custom SW kita
+  sw: 'sw.js',
   disable: process.env.NODE_ENV === 'development',
   buildExcludes: [/middleware-manifest\.json$/],
   runtimeCaching: [
@@ -15,6 +15,17 @@ const withPWA = require('next-pwa')({
       urlPattern: /^https:\/\/fonts\.gstatic\.com/,
       handler: 'CacheFirst',
       options: { cacheName: 'google-fonts-static', expiration: { maxEntries: 20, maxAgeSeconds: 365 * 24 * 60 * 60 } },
+    },
+    // Cache MediaPipe model & WASM agar tidak diunduh ulang setiap sesi
+    {
+      urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/@mediapipe/,
+      handler: 'CacheFirst',
+      options: { cacheName: 'mediapipe-cdn', expiration: { maxEntries: 20, maxAgeSeconds: 30 * 24 * 60 * 60 } },
+    },
+    {
+      urlPattern: /^https:\/\/storage\.googleapis\.com\/mediapipe-models/,
+      handler: 'CacheFirst',
+      options: { cacheName: 'mediapipe-models', expiration: { maxEntries: 10, maxAgeSeconds: 30 * 24 * 60 * 60 } },
     },
   ],
 })
