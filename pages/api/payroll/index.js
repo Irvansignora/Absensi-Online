@@ -10,7 +10,7 @@ async function handler(req, res) {
     // Only show 'approved' or 'paid' status
     const { data, error } = await db
       .from('payrolls')
-      .select('*, employees(name, employee_code, department, position, branches(name))')
+      .select('*, employees!payrolls_employee_id_fkey(name, employee_code, department, position, branches(name))')
       .eq('employee_id', req.user.id)
       .in('status', ['approved', 'paid'])
       .order('year', { ascending: false })
