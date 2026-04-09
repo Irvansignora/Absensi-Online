@@ -5,10 +5,10 @@ export default function Document() {
     <Html lang="id">
       <Head>
         {/* PWA Meta Tags */}
-        <meta name="application-name" content="AbsensiPro" />
+        <meta name="application-name" content="WorkForce" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="AbsensiPro" />
+        <meta name="apple-mobile-web-app-title" content="WorkForce" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#1e3a8a" />
