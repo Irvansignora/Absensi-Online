@@ -7,6 +7,28 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  useEffect(() => {
+    // Check session on mount
+    fetch('/api/auth/me')
+      .then(r => r.json())
+      .then(d => {
+        if (d.user) {
+          if (['admin', 'hr'].includes(d.user.role)) router.push('/admin')
+          else router.push('/dashboard')
+        } else {
+          setCheckingSession(false)
+        }
+      })
+      .catch(() => setCheckingSession(false))
+  }, [])
+
+  if (checkingSession) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="spinner spinner-blue" />
+    </div>
+  )
 
   async function handleLogin(e) {
     e.preventDefault()
