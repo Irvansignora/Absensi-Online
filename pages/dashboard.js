@@ -66,33 +66,19 @@ export default function DashboardPage() {
   const [faceVerified, setFaceVerified]     = useState(false)
   const [facePhotoUrl, setFacePhotoUrl]     = useState(null)
   const [pendingRequests, setPendingRequests] = useState(0)
-  const [lastOvertime, setLastOvertime]     = useState(null)
-  const [payrolls, setPayrolls]             = useState([])
-  const [payrollsLoading, setPayrollsLoading] = useState(false)
   const pendingModeRef                      = useRef(null)
 
   useEffect(() => { 
     fetchUser(); 
     fetchToday(); 
-    fetchHistory(); 
     fetchPendingRequests();
-    fetchPayrolls();
   }, [])
 
-  async function fetchPayrolls() {
-    setPayrollsLoading(true)
-    try {
-      const res = await fetch('/api/payroll')
-      const d = await res.json()
-      setPayrolls(d.payrolls || [])
-    } catch {
-      console.error("Gagal ambil data payroll")
-    }
-    setPayrollsLoading(false)
-  }
-
-  function openSlip(id) {
-    window.open(`/api/admin/payroll/slip?id=${id}`, '_blank', 'width=900,height=700')
+  async function fetchPendingRequests() {
+    const res = await fetch('/api/requests')
+    const d = await res.json()
+    const pending = (d.requests || []).filter(r => r.status === 'pending').length
+    setPendingRequests(pending)
   }
 
   async function fetchUser() {
@@ -260,33 +246,34 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Quick action shortcuts */}
-          <div className="max-w-md mx-auto mt-5 grid grid-cols-3 gap-2">
-            <Link href="/requests"
-              className="flex flex-col items-center gap-1 bg-white/10 hover:bg-white/20 rounded-xl py-3 px-2 transition-all">
-              <span className="text-xl">📝</span>
-              <span className="text-xs text-blue-200 font-medium">Pengajuan</span>
-              {pendingRequests > 0 && (
-                <span className="bg-red-500 text-white text-xs rounded-full px-1.5 leading-5 font-bold">{pendingRequests}</span>
-              )}
-            </Link>
-            <Link href="/requests?tab=leave"
-              className="flex flex-col items-center gap-1 bg-white/10 hover:bg-white/20 rounded-xl py-3 px-2 transition-all">
-              <span className="text-xl">🏖️</span>
-              <span className="text-xs text-blue-200 font-medium">Cuti/Izin</span>
-            </Link>
-            <Link href="/requests?tab=overtime"
-              className="flex flex-col items-center gap-1 bg-white/10 hover:bg-white/20 rounded-xl py-3 px-2 transition-all">
-              <span className="text-xl">⏰</span>
-              <span className="text-xs text-blue-200 font-medium">Lembur</span>
-            </Link>
+          {/* Quick action grid (6 items) */}
+          <div className="max-w-md mx-auto mt-6 grid grid-cols-3 gap-3 px-2">
+            {[
+              { href: '/requests', label: 'Pengajuan', icon: '📝', color: 'bg-blue-500/10' },
+              { href: '/requests', label: 'Cuti / Izin', icon: '🏖️', color: 'bg-emerald-500/10' },
+              { href: '/requests', label: 'Lembur', icon: '⏰', color: 'bg-amber-500/10' },
+              { href: '/history',  label: 'Histori', icon: '📅', color: 'bg-purple-500/10' },
+              { href: '/payroll',  label: 'Slip Gaji', icon: '💵', color: 'bg-indigo-500/10' },
+              { href: '/requests', label: 'Izin Sakit', icon: '🏥', color: 'bg-rose-500/10' },
+            ].map(item => (
+              <Link key={item.label} href={item.href}
+                className={`flex flex-col items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl py-4 px-2 transition-all group active:scale-95`}>
+                <span className="text-2xl group-hover:scale-110 transition-transform">{item.icon}</span>
+                <span className="text-[11px] text-blue-100 font-bold uppercase tracking-wider text-center">{item.label}</span>
+                {item.label === 'Pengajuan' && pendingRequests > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full px-1.5 leading-5 font-bold shadow-lg">
+                    {pendingRequests}
+                  </span>
+                )}
+              </Link>
+            ))}
           </div>
         </div>
 
         <div className="max-w-md mx-auto px-4 -mt-8 pb-10 space-y-4">
 
           {/* Card absensi hari ini */}
-          <div className="card animate-slide-up">
+          <div className="card animate-slide-up shadow-xl shadow-blue-900/5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold font-display">Status Hari Ini</h2>
               {todayAttendance?.status && <Badge status={todayAttendance.status} />}
@@ -375,90 +362,6 @@ export default function DashboardPage() {
                 🔒 Verifikasi wajah AI · Bisa dilewati jika kamera tidak tersedia
               </p>
             )}
-          </div>
-
-          {/* Shortcut pengajuan */}
-          <div className="card animate-slide-up" style={{ animationDelay: '0.05s' }}>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold font-display">Pengajuan Cepat</h2>
-              <Link href="/requests" className="text-xs text-blue-600 font-medium hover:underline">Lihat semua →</Link>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { href: '/requests', label: '📝 Izin',        desc: 'Ajukan izin tidak masuk' },
-                { href: '/requests', label: '🏖️ Cuti',         desc: 'Ajukan cuti tahunan' },
-                { href: '/requests', label: '🏥 Sakit',        desc: 'Lapor tidak masuk sakit' },
-                { href: '/requests', label: '🔄 Tukar Shift',  desc: 'Tukar shift dengan rekan' },
-              ].map(item => (
-                <Link key={item.label} href={item.href}
-                  className="border border-slate-200 hover:border-blue-300 hover:bg-blue-50 rounded-xl p-3 transition-all">
-                  <p className="text-sm font-semibold text-slate-800">{item.label}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{item.desc}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Riwayat absensi */}
-          <div className="card animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <h2 className="text-lg font-bold font-display mb-3">Riwayat Absensi</h2>
-            {history.length === 0 ? (
-              <p className="text-slate-400 text-sm text-center py-4">Belum ada riwayat</p>
-            ) : history.map(r => (
-              <div key={r.id} className="flex items-center justify-between py-3 border-b border-slate-50 last:border-0">
-                <div>
-                  <p className="text-sm font-medium text-slate-800">{fmtDate(r.date)}</p>
-                  <p className="text-xs text-slate-400 mt-0.5 font-mono">
-                    {fmt(r.check_in)} → {fmt(r.check_out)}
-                    {r.check_in && r.check_out && ` · ${Math.floor((new Date(r.check_out) - new Date(r.check_in)) / 3600000)}j`}
-                  </p>
-                  {r.overtime_minutes > 0 && (
-                    <p className="text-xs text-amber-500 mt-0.5">
-                      ⏰ Lembur {Math.floor(r.overtime_minutes / 60)}j{r.overtime_minutes % 60}m
-                      {r.overtime_approved ? ' ✅' : ' ⏳'}
-                    </p>
-                  )}
-                </div>
-                <Badge status={r.status} />
-              </div>
-            ))}
-          </div>
-
-          {/* Riwayat slip gaji */}
-          <div className="card animate-slide-up" style={{ animationDelay: '0.15s' }}>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold font-display">Slip Gaji</h2>
-              <span className="text-xs text-slate-400">{payrolls.length} slip tersedia</span>
-            </div>
-            {payrollsLoading ? (
-              <div className="flex justify-center py-4"><div className="spinner spinner-blue" /></div>
-            ) : payrolls.length === 0 ? (
-              <p className="text-slate-400 text-sm text-center py-4">Belum ada slip gaji</p>
-            ) : (
-              <div className="space-y-3">
-                {payrolls.map(p => (
-                  <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <div>
-                      <p className="text-sm font-bold text-slate-800">
-                        {['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][p.month - 1]} {p.year}
-                      </p>
-                      <p className="text-xs text-slate-500 mt-0.5 font-mono">
-                        {p.net_salary.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => openSlip(p.id)}
-                      className="bg-white text-blue-600 border border-blue-100 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
-                    >
-                      📄 Lihat Slip
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <p className="text-[10px] text-slate-400 mt-4 leading-relaxed">
-              * Hanya slip yang sudah disetujui atau dibayar yang ditampilkan di sini.
-            </p>
           </div>
 
         </div>
