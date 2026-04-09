@@ -77,7 +77,12 @@ export default function AdminLayout({ children }) {
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           <p className="px-4 pt-2 pb-1 text-xs font-semibold text-slate-600 uppercase tracking-widest">Menu</p>
-          {NAV.map(({ href, label, icon, exact }) => (
+          {NAV.filter(item => {
+            if (user?.role === 'finance') {
+              return ['Dashboard', 'Penggajian'].includes(item.label)
+            }
+            return true
+          }).map(({ href, label, icon, exact }) => (
             <Link
               key={href}
               href={href}
@@ -92,6 +97,16 @@ export default function AdminLayout({ children }) {
               )}
             </Link>
           ))}
+          
+          {(user?.role === 'admin' || user?.role === 'hr') && (
+            <>
+              <div className="my-4 border-t border-white/5 mx-4" />
+              <Link href="/dashboard" className="sidebar-link text-blue-400 hover:bg-blue-500/10">
+                <span className="text-base">🕒</span>
+                <span className="flex-1 text-sm font-medium">Mode Absensi</span>
+              </Link>
+            </>
+          )}
         </nav>
 
         {/* User */}
@@ -99,7 +114,11 @@ export default function AdminLayout({ children }) {
           {user && (
             <div className="mb-3 px-2">
               <p className="text-white text-sm font-medium truncate">{user.name}</p>
-              <p className="text-slate-500 text-xs truncate">{user.role === 'admin' ? '🔑 Administrator' : '📋 HR Manager'}</p>
+              <p className="text-slate-500 text-xs truncate">
+                {user.role === 'admin' ? '🔑 Administrator' : 
+                 user.role === 'hr' ? '📋 HR Manager' : 
+                 user.role === 'finance' ? '💰 Finance / Payroll' : user.role}
+              </p>
             </div>
           )}
           <button
