@@ -10,7 +10,9 @@ const ROLES = [
 const EMPTY_FORM = {
   name: '', email: '', password: '', employee_code: '',
   role: 'employee', branch_id: '', shift_id: '',
-  department: '', position: '', phone: '', is_active: true
+  department: '', position: '', phone: '', is_active: true,
+  salary_basic: '', allowance_transport: '', allowance_meal: '',
+  allowance_position: '', bpjs_enrolled: true,
 }
 
 export default function EmployeesPage() {
@@ -55,7 +57,10 @@ export default function EmployeesPage() {
       employee_code: e.employee_code, role: e.role,
       branch_id: e.branch_id || '', shift_id: e.shift_id || '',
       department: e.department || '', position: e.position || '',
-      phone: e.phone || '', is_active: e.is_active
+      phone: e.phone || '', is_active: e.is_active,
+      salary_basic: e.salary_basic || '', allowance_transport: e.allowance_transport || '',
+      allowance_meal: e.allowance_meal || '', allowance_position: e.allowance_position || '',
+      bpjs_enrolled: e.bpjs_enrolled !== false,
     })
     setEditId(e.id)
     setModal(true)
@@ -266,6 +271,41 @@ export default function EmployeesPage() {
                 <div>
                   <label className="label">Jabatan</label>
                   <input className="input" placeholder="Staff Senior" value={form.position} onChange={e => setForm({ ...form, position: e.target.value })} />
+                </div>
+              </div>
+
+              {/* Divider Gaji */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">💰 Komponen Gaji</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Gaji Pokok (Rp)</label>
+                    <input type="number" className="input" placeholder="5000000" value={form.salary_basic}
+                      onChange={e => setForm({ ...form, salary_basic: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label">Tunjangan Jabatan (Rp)</label>
+                    <input type="number" className="input" placeholder="500000" value={form.allowance_position}
+                      onChange={e => setForm({ ...form, allowance_position: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label">Tunjangan Transport (Rp)</label>
+                    <input type="number" className="input" placeholder="300000" value={form.allowance_transport}
+                      onChange={e => setForm({ ...form, allowance_transport: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label">Tunjangan Makan (Rp)</label>
+                    <input type="number" className="input" placeholder="200000" value={form.allowance_meal}
+                      onChange={e => setForm({ ...form, allowance_meal: e.target.value })} />
+                  </div>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <input type="checkbox" id="bpjs" checked={form.bpjs_enrolled}
+                      onChange={e => setForm({ ...form, bpjs_enrolled: e.target.checked })}
+                      className="w-4 h-4 rounded text-blue-600" />
+                    <label htmlFor="bpjs" className="text-sm text-slate-700 cursor-pointer">
+                      Peserta BPJS (Kesehatan + Ketenagakerjaan)
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
