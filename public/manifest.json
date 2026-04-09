@@ -1,6 +1,6 @@
 {
-  "name": "AbsensiPro - Sistem Absensi Online",
-  "short_name": "AbsensiPro",
+  "name": "WorkForce - Sistem Absensi Online",
+  "short_name": "WorkForce",
   "description": "Sistem absensi online multi-cabang untuk karyawan dan admin HR",
   "start_url": "/dashboard",
   "scope": "/",
