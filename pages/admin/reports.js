@@ -165,6 +165,7 @@ export default function ReportsPage() {
                     <th>Check Out</th>
                     <th>Jam Kerja</th>
                     <th>Status</th>
+                    <th>Lokasi</th>
                     <th>Wajah</th>
                     <th>Catatan</th>
                   </tr>
@@ -190,6 +191,21 @@ export default function ReportsPage() {
                           </span>
                         </td>
                         <td><Badge status={r.status} /></td>
+                        <td className="text-center">
+                          {r.check_in_lat && r.check_in_lng ? (
+                            <a
+                              href={`https://www.google.com/maps?q=${r.check_in_lat},${r.check_in_lng}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              title={`Lat: ${parseFloat(r.check_in_lat).toFixed(5)}, Lng: ${parseFloat(r.check_in_lng).toFixed(5)}`}
+                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-mono bg-blue-50 px-2 py-1 rounded-lg hover:bg-blue-100 transition-colors"
+                            >
+                              📍 Maps
+                            </a>
+                          ) : (
+                            <span className="text-slate-300 text-xs">—</span>
+                          )}
+                        </td>
                         <td className="text-center">
                           {r.face_photo_url ? (
                             <a href={r.face_photo_url} target="_blank" rel="noreferrer" title="Lihat foto check-in">
