@@ -55,11 +55,12 @@ export default function RequestsPage() {
     if (['admin', 'hr'].includes(d.user.role)) { router.push('/admin'); return }
     setUser(d.user)
     // Load employees & shifts for swap options
+    // Gunakan /api/employees (bukan admin) agar karyawan biasa bisa akses
     const [empR, shiftR] = await Promise.all([
-      fetch('/api/admin/employees').then(r => r.json()).catch(() => ({ employees: [] })),
-      fetch('/api/admin/shifts').then(r => r.json()).catch(() => ({ shifts: [] })),
+      fetch('/api/employees').then(r => r.json()).catch(() => ({ employees: [] })),
+      fetch('/api/shifts').then(r => r.json()).catch(() => ({ shifts: [] })),
     ])
-    setEmployees((empR.employees || []).filter(e => e.id !== d.user.id && e.is_active))
+    setEmployees(empR.employees || [])
     setShifts(shiftR.shifts || [])
   }
 
