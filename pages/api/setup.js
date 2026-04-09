@@ -88,6 +88,12 @@ export default async function handler(req, res) {
         branch_id: surabaya?.id, shift_id: pagi?.id,
         department: 'Operations', position: 'Staff Operasional', phone: '08456789012', is_active: true
       },
+      {
+        name: 'Dina Finance', email: 'finance@demo.com', password_hash: hrHash,
+        employee_code: 'FIN-001', role: 'finance',
+        branch_id: pusat?.id, shift_id: pagi?.id,
+        department: 'Finance', position: 'Payroll Officer', is_active: true
+      },
     ], { onConflict: 'email' }).select()
 
     if (empErr) throw new Error('Employee error: ' + empErr.message)
