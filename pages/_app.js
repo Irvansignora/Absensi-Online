@@ -35,6 +35,9 @@ export default function App({ Component, pageProps }) {
     }
   }, [])
 
+  // Persistent Layout logic
+  const getLayout = Component.getLayout || ((page) => page)
+
   return (
     <>
       <Head>
@@ -46,7 +49,7 @@ export default function App({ Component, pageProps }) {
       {/* Offline indicator */}
       {!isOnline && <OfflineBanner />}
 
-      <Component {...pageProps} />
+      {getLayout(<Component {...pageProps} />, pageProps)}
 
       {/* PWA Install Banner */}
       {showBanner && !dismissed && (
