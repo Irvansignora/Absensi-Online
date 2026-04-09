@@ -19,6 +19,10 @@ async function handler(req, res) {
 
   if (error || !p) return res.status(404).json({ error: 'Payroll tidak ditemukan' })
 
+  // Auth check: Admin/HR/Finance can see everything. Employee only their own.
+  const canView = ['admin', 'hr', 'finance'].includes(req.user.role) || p.employee_id === req.user.id
+  if (!canView) return res.status(403).json({ error: 'Forbidden - Anda tidak berhak melihat slip ini' })
+
   // Ambil company settings
   const { data: cs } = await db.from('company_settings').select('*').limit(1).single()
   const settings = cs || {}
@@ -219,4 +223,4 @@ async function handler(req, res) {
   return res.end(html)
 }
 
-export default requireAuth(handler, { adminOnly: true })
+export default requireAuth(handler)
