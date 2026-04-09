@@ -67,9 +67,33 @@ export default function DashboardPage() {
   const [facePhotoUrl, setFacePhotoUrl]     = useState(null)
   const [pendingRequests, setPendingRequests] = useState(0)
   const [lastOvertime, setLastOvertime]     = useState(null)
+  const [payrolls, setPayrolls]             = useState([])
+  const [payrollsLoading, setPayrollsLoading] = useState(false)
   const pendingModeRef                      = useRef(null)
 
-  useEffect(() => { fetchUser(); fetchToday(); fetchHistory(); fetchPendingRequests() }, [])
+  useEffect(() => { 
+    fetchUser(); 
+    fetchToday(); 
+    fetchHistory(); 
+    fetchPendingRequests();
+    fetchPayrolls();
+  }, [])
+
+  async function fetchPayrolls() {
+    setPayrollsLoading(true)
+    try {
+      const res = await fetch('/api/payroll')
+      const d = await res.json()
+      setPayrolls(d.payrolls || [])
+    } catch {
+      console.error("Gagal ambil data payroll")
+    }
+    setPayrollsLoading(false)
+  }
+
+  function openSlip(id) {
+    window.open(`/api/admin/payroll/slip?id=${id}`, '_blank', 'width=900,height=700')
+  }
 
   async function fetchUser() {
     try {
@@ -398,6 +422,43 @@ export default function DashboardPage() {
                 <Badge status={r.status} />
               </div>
             ))}
+          </div>
+
+          {/* Riwayat slip gaji */}
+          <div className="card animate-slide-up" style={{ animationDelay: '0.15s' }}>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-bold font-display">Slip Gaji</h2>
+              <span className="text-xs text-slate-400">{payrolls.length} slip tersedia</span>
+            </div>
+            {payrollsLoading ? (
+              <div className="flex justify-center py-4"><div className="spinner spinner-blue" /></div>
+            ) : payrolls.length === 0 ? (
+              <p className="text-slate-400 text-sm text-center py-4">Belum ada slip gaji</p>
+            ) : (
+              <div className="space-y-3">
+                {payrolls.map(p => (
+                  <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">
+                        {['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][p.month - 1]} {p.year}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5 font-mono">
+                        {p.net_salary.toLocaleString('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => openSlip(p.id)}
+                      className="bg-white text-blue-600 border border-blue-100 hover:bg-blue-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm"
+                    >
+                      📄 Lihat Slip
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-[10px] text-slate-400 mt-4 leading-relaxed">
+              * Hanya slip yang sudah disetujui atau dibayar yang ditampilkan di sini.
+            </p>
           </div>
 
         </div>
