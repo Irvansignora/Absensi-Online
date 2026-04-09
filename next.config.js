@@ -16,7 +16,6 @@ const withPWA = require('next-pwa')({
       handler: 'CacheFirst',
       options: { cacheName: 'google-fonts-static', expiration: { maxEntries: 20, maxAgeSeconds: 365 * 24 * 60 * 60 } },
     },
-    // Cache MediaPipe model & WASM agar tidak diunduh ulang setiap sesi
     {
       urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/@mediapipe/,
       handler: 'CacheFirst',
@@ -36,6 +35,10 @@ const nextConfig = {
   webpack: (config) => {
     config.resolve.fallback = { fs: false, path: false, stream: false }
     return config
+  },
+  // Izinkan dynamic import dari CDN eksternal (MediaPipe)
+  experimental: {
+    externalDir: true,
   },
 }
 
