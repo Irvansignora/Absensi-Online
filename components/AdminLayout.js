@@ -14,7 +14,7 @@ const NAV = [
   { href: '/admin/settings',  label: 'Setting Company',    icon: '⚙️' },
 ]
 
-export default function AdminLayout({ children, title = 'Dashboard' }) {
+export default function AdminLayout({ children }) {
   const router = useRouter()
   const [user, setUser]               = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -156,7 +156,6 @@ export default function AdminLayout({ children, title = 'Dashboard' }) {
       {/* Main content */}
       <main className="lg:pl-64 pt-14 lg:pt-0">
         <div key={router.asPath} className="px-4 sm:px-6 lg:px-8 py-8 animate-page">
-          <h1 className="text-2xl font-bold font-display text-slate-900 mb-6">{title}</h1>
           {children}
         </div>
       </main>
