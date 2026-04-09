@@ -57,6 +57,7 @@ export default function DashboardPage() {
   const [todayAttendance, setTodayAttendance] = useState(null)
   const [history, setHistory]               = useState([])
   const [loading, setLoading]               = useState(false)
+  const [isLoadingUser, setIsLoadingUser]   = useState(true)
   const [note, setNote]                     = useState('')
   const [msg, setMsg]                       = useState({ type: '', text: '' })
   const [coords, setCoords]                 = useState(null)
@@ -71,11 +72,18 @@ export default function DashboardPage() {
   useEffect(() => { fetchUser(); fetchToday(); fetchHistory(); fetchPendingRequests() }, [])
 
   async function fetchUser() {
-    const res = await fetch('/api/auth/me')
-    const d = await res.json()
-    if (d.error) { router.push('/'); return }
-    if (['admin', 'hr'].includes(d.user.role)) { router.push('/admin'); return }
-    setUser(d.user)
+    try {
+      const res = await fetch('/api/auth/me')
+      const d = await res.json()
+      if (d.error) {
+        router.push('/')
+      } else {
+        setUser(d.user)
+        setIsLoadingUser(false)
+      }
+    } catch {
+      router.push('/')
+    }
   }
 
   async function fetchToday() {
@@ -188,6 +196,12 @@ export default function DashboardPage() {
   // Timezone dari branch user
   const tzOffset = user?.branch_timezone_offset ?? null
   const tzLabel  = user?.branch_timezone ?? null
+
+  if (isLoadingUser) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="spinner spinner-blue" />
+    </div>
+  )
 
   return (
     <>
