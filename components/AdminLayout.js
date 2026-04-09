@@ -11,6 +11,7 @@ const NAV = [
   { href: '/admin/requests',  label: 'Pengajuan & Lembur', icon: '📋' },
   { href: '/admin/reports',   label: 'Laporan Absensi',    icon: '📈' },
   { href: '/admin/payroll',   label: 'Penggajian',         icon: '💰' },
+  { href: '/admin/settings',  label: 'Setting Company',    icon: '⚙️' },
 ]
 
 export default function AdminLayout({ children, title = 'Dashboard' }) {
