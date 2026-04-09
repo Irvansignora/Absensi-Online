@@ -191,9 +191,16 @@ export default function ReportsPage() {
                         </td>
                         <td><Badge status={r.status} /></td>
                         <td className="text-center">
-                          {r.face_verified
-                            ? <span title="Wajah terverifikasi" className="text-emerald-600 text-base">🤖</span>
-                            : <span title="Tidak diverifikasi" className="text-slate-300 text-base">—</span>}
+                          {r.face_photo_url ? (
+                            <a href={r.face_photo_url} target="_blank" rel="noreferrer" title="Lihat foto check-in">
+                              <img src={r.face_photo_url} alt="foto"
+                                className="w-9 h-9 rounded-full object-cover border-2 border-emerald-400 inline-block hover:scale-110 transition-transform" />
+                            </a>
+                          ) : r.face_verified ? (
+                            <span title="Terverifikasi tanpa foto" className="text-emerald-500 text-base">✅</span>
+                          ) : (
+                            <span title="Tidak ada foto" className="text-slate-300 text-base">—</span>
+                          )}
                         </td>
                         <td className="text-xs text-slate-500 max-w-32 truncate">{r.check_in_note || r.check_out_note || '-'}</td>
                       </tr>
