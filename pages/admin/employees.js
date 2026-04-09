@@ -210,6 +210,7 @@ export default function EmployeesPage() {
                 </tbody>
               </table>
             </div>
+          )}
         </div>
 
       {/* ── Modal Tambah/Edit ── */}
