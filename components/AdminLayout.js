@@ -11,7 +11,7 @@ const NAV = [
   { href: '/admin/requests',  label: 'Pengajuan & Lembur', icon: '📋' },
   { href: '/admin/reports',   label: 'Laporan Absensi',    icon: '📈' },
   { href: '/admin/payroll',   label: 'Penggajian',         icon: '💰' },
-  { href: '/admin/settings',  label: 'Setting',		       icon: '⚙️' },
+  { href: '/admin/settings',  label: 'Setting Company',    icon: '⚙️' },
 ]
 
 export default function AdminLayout({ children, title = 'Dashboard' }) {
@@ -19,20 +19,35 @@ export default function AdminLayout({ children, title = 'Dashboard' }) {
   const [user, setUser]               = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.json())
       .then(d => {
-        if (d.error) router.push('/')
-        else setUser(d.user)
+        if (d.error) {
+          router.push('/')
+        } else {
+          setUser(d.user)
+          setIsLoading(false)
+        }
       })
+      .catch(() => {
+        router.push('/')
+      })
+      
     // Badge count untuk pending requests
     fetch('/api/admin/requests?status=pending')
       .then(r => r.json())
       .then(d => setPendingCount((d.requests || []).length))
       .catch(() => {})
   }, [])
+
+  if (isLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="spinner spinner-blue" />
+    </div>
+  )
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
