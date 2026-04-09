@@ -191,7 +191,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Head><title>Absensi — AbsensiPro</title></Head>
+      <Head><title>Absensi — WorkForce</title></Head>
 
       {faceMode && (
         <FaceRecognition mode={faceMode} onVerified={handleFaceVerified} onSkip={handleFaceSkip} />
@@ -204,8 +204,8 @@ export default function DashboardPage() {
           style={{ background: 'linear-gradient(135deg, #0B1629 0%, #1e3a8a 100%)' }}>
           <div className="flex justify-between items-center max-w-md mx-auto mb-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">A</div>
-              <span className="text-white font-bold font-display">AbsensiPro</span>
+              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">W</div>
+              <span className="text-white font-bold font-display">WorkForce</span>
             </div>
             <button onClick={handleLogout} className="text-slate-400 hover:text-white text-sm">🚪 Logout</button>
           </div>
@@ -322,7 +322,7 @@ export default function DashboardPage() {
                 {loading ? <><div className="spinner" />Memproses...</> : '🤖 SCAN WAJAH & CHECK IN'}
               </button>
             ) : !todayAttendance?.check_out ? (
-              <button onClick={startCheckOut} disabled={loading} className="btn-danger btn-lg w-full justify-center"
+              <button onClick={startCheckOut} disabled={loading} className="btn-danger btn-lg w-full justify-center text-white"
                 style={{ background: '#dc2626' }}>
                 {loading ? <><div className="spinner" />Memproses...</> : '🤖 SCAN WAJAH & CHECK OUT'}
               </button>
