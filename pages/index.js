@@ -25,7 +25,7 @@ export default function LoginPage() {
   }, [])
 
   if (checkingSession) return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 animate-page">
       <div className="spinner spinner-blue" />
     </div>
   )
@@ -65,7 +65,7 @@ export default function LoginPage() {
       <Head>
         <title>Login - WorkForce</title>
       </Head>
-      <div className="min-h-screen flex font-body">
+      <div className="min-h-screen flex font-body animate-page">
         {/* Left: decorative panel */}
         <div className="hidden lg:flex w-1/2 flex-col justify-between p-12 relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg, #0B1629 0%, #0f2347 50%, #1a3a6e 100%)' }}>
