@@ -117,7 +117,7 @@ export default function RequestsPage() {
 
   return (
     <>
-      <Head><title>Pengajuan — AbsensiPro</title></Head>
+      <Head><title>Pengajuan — WorkForce</title></Head>
       <div className="min-h-screen bg-slate-50 font-body">
 
         {/* Header */}
