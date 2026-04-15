@@ -2,11 +2,7 @@
 import { requireAuth } from '../../../../lib/auth'
 import { supabaseAdmin } from '../../../../lib/supabase'
 
-const TIMEZONE_MAP = {
-  WIB:  7,
-  WITA: 8,
-  WIT:  9,
-}
+const TIMEZONE_MAP = { WIB: 7, WITA: 8, WIT: 9 }
 
 async function handler(req, res) {
   const db = supabaseAdmin()
@@ -28,7 +24,7 @@ async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { name, address, city, phone, timezone } = req.body
+    const { name, address, city, phone, timezone, latitude, longitude, geofence_radius } = req.body
     if (!name) return res.status(400).json({ error: 'Nama cabang wajib diisi' })
 
     const tz        = timezone || 'WIB'
@@ -38,6 +34,9 @@ async function handler(req, res) {
       name, address, city, phone,
       timezone: tz,
       timezone_offset: tz_offset,
+      latitude:        latitude  ? parseFloat(latitude)  : null,
+      longitude:       longitude ? parseFloat(longitude) : null,
+      geofence_radius: geofence_radius ? parseInt(geofence_radius) : null,
     }).select().single()
 
     if (error) return res.status(500).json({ error: error.message })
