@@ -254,3 +254,5 @@ export default function BranchesPage() {
     </div>
   )
 }
+
+BranchesPage.getLayout = (page) => <AdminLayout>{page}</AdminLayout>
