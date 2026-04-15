@@ -287,3 +287,5 @@ export default function AdminDashboard() {
     </div>
   )
 }
+
+AdminDashboard.getLayout = (page) => <AdminLayout>{page}</AdminLayout>
