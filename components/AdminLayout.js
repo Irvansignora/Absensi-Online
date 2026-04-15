@@ -1,42 +1,47 @@
-// components/AdminLayout.js
+// components/AdminLayout.js — updated with Roster + Manager nav
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
-const NAV = [
+const NAV_ADMIN = [
   { href: '/admin',           label: 'Dashboard',         icon: '📊', exact: true },
   { href: '/admin/employees', label: 'Karyawan',           icon: '👥' },
   { href: '/admin/branches',  label: 'Cabang',             icon: '🏢' },
   { href: '/admin/shifts',    label: 'Shift',              icon: '🕐' },
+  { href: '/admin/roster',    label: 'Roster Jadwal',      icon: '📅' },
   { href: '/admin/requests',  label: 'Pengajuan & Lembur', icon: '📋' },
   { href: '/admin/reports',   label: 'Laporan Absensi',    icon: '📈' },
   { href: '/admin/payroll',   label: 'Penggajian',         icon: '💰' },
   { href: '/admin/settings',  label: 'Setting Company',    icon: '⚙️' },
 ]
 
+function navForRole(role) {
+  if (role === 'finance') {
+    return NAV_ADMIN.filter(n => ['Dashboard', 'Penggajian'].includes(n.label))
+  }
+  if (role === 'hr') {
+    return NAV_ADMIN.filter(n => n.label !== 'Penggajian')
+  }
+  return NAV_ADMIN
+}
+
 export default function AdminLayout({ children }) {
   const router = useRouter()
-  const [user, setUser]               = useState(null)
+  const [user, setUser]             = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [pendingCount, setPendingCount] = useState(0)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading]   = useState(true)
 
   useEffect(() => {
     fetch('/api/auth/me')
       .then(r => r.json())
       .then(d => {
-        if (d.error) {
-          router.push('/')
-        } else {
-          setUser(d.user)
-          setIsLoading(false)
-        }
+        if (d.error) { router.push('/'); return }
+        setUser(d.user)
+        setIsLoading(false)
       })
-      .catch(() => {
-        router.push('/')
-      })
-      
-    // Badge count untuk pending requests
+      .catch(() => router.push('/'))
+
     fetch('/api/admin/requests?status=pending')
       .then(r => r.json())
       .then(d => setPendingCount((d.requests || []).length))
@@ -56,6 +61,15 @@ export default function AdminLayout({ children }) {
 
   const isActive = (href, exact) =>
     exact ? router.pathname === href : router.pathname.startsWith(href)
+
+  const navItems = navForRole(user?.role)
+
+  const ROLE_LABEL = {
+    admin:   '🔑 Administrator',
+    hr:      '📋 HR Manager',
+    finance: '💰 Finance / Payroll',
+    manager: '👔 Manager',
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-body">
@@ -77,12 +91,7 @@ export default function AdminLayout({ children }) {
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           <p className="px-4 pt-2 pb-1 text-xs font-semibold text-slate-600 uppercase tracking-widest">Menu</p>
-          {NAV.filter(item => {
-            if (user?.role === 'finance') {
-              return ['Dashboard', 'Penggajian'].includes(item.label)
-            }
-            return true
-          }).map(({ href, label, icon, exact }) => (
+          {navItems.map(({ href, label, icon, exact }) => (
             <Link
               key={href}
               href={href}
@@ -97,15 +106,28 @@ export default function AdminLayout({ children }) {
               )}
             </Link>
           ))}
-          
-          {(user?.role === 'admin' || user?.role === 'hr' || user?.role === 'finance') && (
-            <>
-              <div className="my-4 border-t border-white/5 mx-4" />
-              <Link href="/dashboard" className="sidebar-link text-blue-400 hover:bg-blue-500/10">
-                <span className="text-base">🕒</span>
-                <span className="flex-1 text-sm font-medium">Mode Absensi</span>
-              </Link>
-            </>
+
+          <div className="my-4 border-t border-white/5 mx-4" />
+          <p className="px-4 pb-1 text-xs font-semibold text-slate-600 uppercase tracking-widest">Karyawan</p>
+
+          {/* Manager Dashboard — only for manager/admin/hr */}
+          {['admin', 'hr', 'manager'].includes(user?.role) && (
+            <Link href="/manager" className={`sidebar-link ${router.pathname.startsWith('/manager') ? 'active' : ''}`}>
+              <span className="text-base">👔</span>
+              <span className="flex-1 text-sm font-medium">Dashboard Manager</span>
+            </Link>
+          )}
+
+          <Link href="/profile" className={`sidebar-link ${router.pathname === '/profile' ? 'active' : ''}`}>
+            <span className="text-base">👤</span>
+            <span className="flex-1 text-sm font-medium">Profil Saya</span>
+          </Link>
+
+          {(['admin', 'hr', 'finance'].includes(user?.role)) && (
+            <Link href="/dashboard" className="sidebar-link text-blue-400 hover:bg-blue-500/10">
+              <span className="text-base">🕒</span>
+              <span className="flex-1 text-sm font-medium">Mode Absensi</span>
+            </Link>
           )}
         </nav>
 
@@ -114,11 +136,7 @@ export default function AdminLayout({ children }) {
           {user && (
             <div className="mb-3 px-2">
               <p className="text-white text-sm font-medium truncate">{user.name}</p>
-              <p className="text-slate-500 text-xs truncate">
-                {user.role === 'admin' ? '🔑 Administrator' : 
-                 user.role === 'hr' ? '📋 HR Manager' : 
-                 user.role === 'finance' ? '💰 Finance / Payroll' : user.role}
-              </p>
+              <p className="text-slate-500 text-xs truncate">{ROLE_LABEL[user.role] || user.role}</p>
             </div>
           )}
           <button
@@ -152,14 +170,11 @@ export default function AdminLayout({ children }) {
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-30 bg-black/50" onClick={() => setSidebarOpen(false)}>
-          <div className="w-64 h-full" style={{ background: '#0B1629' }} onClick={e => e.stopPropagation()}>
+          <div className="w-64 h-full overflow-y-auto" style={{ background: '#0B1629' }} onClick={e => e.stopPropagation()}>
             <nav className="px-3 py-16 space-y-0.5">
-              {NAV.map(({ href, label, icon, exact }) => (
-                <Link
-                  key={href} href={href}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`sidebar-link ${isActive(href, exact) ? 'active' : ''}`}
-                >
+              {navItems.map(({ href, label, icon, exact }) => (
+                <Link key={href} href={href} onClick={() => setSidebarOpen(false)}
+                  className={`sidebar-link ${isActive(href, exact) ? 'active' : ''}`}>
                   <span>{icon}</span>
                   <span className="flex-1">{label}</span>
                   {href === '/admin/requests' && pendingCount > 0 && (
@@ -167,6 +182,15 @@ export default function AdminLayout({ children }) {
                   )}
                 </Link>
               ))}
+              <div className="my-4 border-t border-white/5 mx-4" />
+              {['admin', 'hr', 'manager'].includes(user?.role) && (
+                <Link href="/manager" onClick={() => setSidebarOpen(false)} className="sidebar-link">
+                  <span>👔</span><span className="flex-1">Dashboard Manager</span>
+                </Link>
+              )}
+              <Link href="/profile" onClick={() => setSidebarOpen(false)} className="sidebar-link">
+                <span>👤</span><span className="flex-1">Profil Saya</span>
+              </Link>
             </nav>
           </div>
         </div>
