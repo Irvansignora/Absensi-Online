@@ -426,3 +426,5 @@ export default function RosterPage() {
     </div>
   )
 }
+
+RosterPage.getLayout = (page) => <AdminLayout>{page}</AdminLayout>
