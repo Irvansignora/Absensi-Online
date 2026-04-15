@@ -39,6 +39,38 @@ function NumInput({ value, onChange, min, max, step = 0.1, suffix }) {
   )
 }
 
+function BlastButton({ customMessage }) {
+  const [blasting, setBlasting] = useState(false)
+  const [result, setResult]     = useState(null)
+
+  async function handleBlast() {
+    if (!confirm('Kirim pengingat WA ke semua karyawan yang belum absen hari ini?')) return
+    setBlasting(true); setResult(null)
+    const res = await fetch('/api/admin/notify/blast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'not_checkin', message: customMessage }),
+    })
+    const d = await res.json()
+    setBlasting(false)
+    setResult(d)
+  }
+
+  return (
+    <div className="space-y-2">
+      <button onClick={handleBlast} disabled={blasting}
+        className="btn-primary flex items-center gap-2">
+        {blasting ? <><div className="spinner" />Mengirim...</> : '📣 Kirim Blast Sekarang'}
+      </button>
+      {result && (
+        <p className={`text-sm ${result.sent > 0 ? 'text-green-600' : 'text-slate-500'}`}>
+          {result.message} {result.sent > 0 ? `(${result.sent} pesan)` : ''}
+        </p>
+      )}
+    </div>
+  )
+}
+
 export default function SettingsPage() {
   const [s, setS] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -113,6 +145,7 @@ export default function SettingsPage() {
     { id: 'bpjs',       label: '🏥 BPJS',            },
     { id: 'lembur',     label: '⏰ Lembur & PPh21',  },
     { id: 'slip',       label: '📄 Slip Gaji',        },
+    { id: 'notifikasi', label: '📱 Notifikasi WA',    },
   ]
 
   if (loading) return (
@@ -474,6 +507,65 @@ export default function SettingsPage() {
               </div>
             </div>
           </SectionCard>
+        )}
+
+        {/* ── TAB: Notifikasi ─────────────────────────────────────────── */}
+        {activeTab === 'notifikasi' && (
+          <div className="space-y-5">
+            <SectionCard title="WhatsApp Notifikasi" icon="📱">
+              <div className="space-y-4">
+                <Field label="Provider WA" hint="Set env WA_PROVIDER=fonnte di server Anda">
+                  <div className="flex gap-3">
+                    {['fonnte', 'twilio'].map(p => (
+                      <label key={p} className="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="wa_provider"
+                          checked={(s.wa_provider || 'fonnte') === p}
+                          onChange={() => set('wa_provider', p)} />
+                        <span className="text-sm capitalize font-medium text-slate-700">{p}</span>
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Fonnte API Token" hint="Dapatkan token di app.fonnte.com (gratis untuk coba)">
+                  <input className="input font-mono text-sm" value={s.fonnte_token || ''}
+                    onChange={e => set('fonnte_token', e.target.value)} placeholder="Paste token Fonnte di sini" />
+                  <p className="text-xs text-slate-400 mt-1">Token ini disimpan sebagai environment variable FONNTE_TOKEN, bukan di database</p>
+                </Field>
+                <div className="border border-slate-200 rounded-xl p-4 space-y-3 bg-slate-50">
+                  <p className="text-sm font-semibold text-slate-700">📋 Notifikasi yang aktif:</p>
+                  {[
+                    ['✅ Check-in berhasil', 'Dikirim ke karyawan setelah absen masuk'],
+                    ['🏁 Check-out berhasil', 'Dikirim ke karyawan setelah absen pulang'],
+                    ['📋 Pengajuan disetujui/ditolak', 'Dikirim saat admin/manager mereview'],
+                    ['⏰ Lembur disetujui/ditolak', 'Dikirim setelah admin review lembur'],
+                    ['💰 Slip gaji tersedia', 'Dikirim saat admin publish payroll'],
+                  ].map(([title, desc]) => (
+                    <div key={title} className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">✓</span>
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">{title}</p>
+                        <p className="text-xs text-slate-500">{desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Blast Pengingat Absensi" icon="📣">
+              <div className="space-y-3">
+                <p className="text-sm text-slate-600">
+                  Kirim pesan WA ke semua karyawan yang <strong>belum check-in</strong> hari ini.
+                </p>
+                <Field label="Pesan Kustom (opsional)" hint="Kosongkan untuk gunakan pesan default">
+                  <textarea className="input resize-none h-24 text-sm" value={s.blast_message || ''}
+                    onChange={e => set('blast_message', e.target.value)}
+                    placeholder="Halo {nama}! Anda belum absen hari ini..." />
+                </Field>
+                <BlastButton customMessage={s.blast_message} />
+              </div>
+            </SectionCard>
+          </div>
         )}
 
         {/* Save button — sticky at bottom */}
