@@ -129,7 +129,7 @@
 
   /* Sidebar */
   .sidebar {
-    @apply fixed left-0 top-0 bottom-0 w-64 hidden lg:flex flex-col z-30;
+    @apply fixed left-0 top-0 bottom-0 w-64 flex flex-col z-30;
     background: var(--sidebar-bg);
   }
 
