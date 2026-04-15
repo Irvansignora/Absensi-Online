@@ -1,11 +1,12 @@
 // pages/api/attendance/checkout.js
-import { requireAuth } from '../../../lib/auth'
-import { supabaseAdmin } from '../../../lib/supabase'
+import { requireAuth }    from '../../../lib/auth'
+import { supabaseAdmin }  from '../../../lib/supabase'
+import { notifyCheckOut } from '../../../lib/notify'
 
 async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const db = supabaseAdmin()
+  const db    = supabaseAdmin()
   const today = new Date().toISOString().split('T')[0]
   const now   = new Date().toISOString()
 
@@ -21,23 +22,23 @@ async function handler(req, res) {
 
   const { note, latitude, longitude, face_verified, face_photo_url } = req.body
 
-  // ── Hitung lembur ──────────────────────────────────────────────
+  // ── Hitung lembur ──────────────────────────────────────────────────────────
   let overtime_minutes = 0
   const shift = attendance.employees?.shifts
   if (shift?.end_time) {
-    const tzOffset     = shift.branches?.timezone_offset ?? 7
-    const nowUTCMs     = new Date(now).getTime()
-    const nowLocalMs   = nowUTCMs + tzOffset * 3600 * 1000
-    const nowLocal     = new Date(nowLocalMs)
-    const [eh, em]     = shift.end_time.split(':').map(Number)
-    const shiftEnd     = new Date(nowLocal)
+    const tzOffset   = shift.branches?.timezone_offset ?? 7
+    const nowUTCMs   = new Date(now).getTime()
+    const nowLocalMs = nowUTCMs + tzOffset * 3600 * 1000
+    const nowLocal   = new Date(nowLocalMs)
+    const [eh, em]   = shift.end_time.split(':').map(Number)
+    const shiftEnd   = new Date(nowLocal)
     shiftEnd.setHours(eh, em, 0, 0)
-    const diffMins     = Math.floor((nowLocal - shiftEnd) / 60000)
-    const maxOT        = (shift.max_overtime_hours ?? 4) * 60
+    const diffMins   = Math.floor((nowLocal - shiftEnd) / 60000)
+    const maxOT      = (shift.max_overtime_hours ?? 4) * 60
     if (diffMins > 0) overtime_minutes = Math.min(diffMins, maxOT)
   }
 
-  // ── Hitung jam kerja & status ──────────────────────────────────
+  // ── Hitung jam kerja & status ──────────────────────────────────────────────
   const workMins = Math.floor((new Date(now) - new Date(attendance.check_in)) / 60000)
   let status = attendance.status
   if (workMins < 240 && status === 'present') status = 'half_day'
@@ -60,7 +61,7 @@ async function handler(req, res) {
 
   if (error) return res.status(500).json({ error: error.message })
 
-  // ── Buat overtime_log jika lembur ──────────────────────────────
+  // ── Buat overtime_log jika lembur ──────────────────────────────────────────
   if (overtime_minutes > 0) {
     const multiplier = shift?.overtime_multiplier ?? 1.5
     await db.from('overtime_logs').insert({
@@ -74,6 +75,9 @@ async function handler(req, res) {
       status:         'pending',
     })
   }
+
+  // ── WA Notification (fire & forget) ───────────────────────────────────────
+  notifyCheckOut({ employee: req.user, attendance: data, overtime_minutes }).catch(() => {})
 
   return res.status(200).json({
     attendance: data,
